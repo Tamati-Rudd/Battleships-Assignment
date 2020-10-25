@@ -1,5 +1,8 @@
 package Game;
 
+import GUI.Controller;
+import GUI.Model;
+import GUI.View;
 import java.util.Scanner;
 
 /**
@@ -15,6 +18,10 @@ public class BattleshipsApplication {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        View view = new View();
+        Model model = new Model();
+        Controller controller = new Controller();
+        model.addObserver(view);
         
         Boolean running = true;
         System.out.println("#========================================================================================#");
