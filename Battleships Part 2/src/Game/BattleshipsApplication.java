@@ -19,11 +19,15 @@ public class BattleshipsApplication {
      */
     public static void main(String[] args) {
         View view = new View();
-        Model model = new Model();
-        Controller controller = new Controller();
-        model.addObserver(view);
+        //Model model = new Model();
+        //Controller controller = new Controller();
+        //model.addObserver(view);
         
-        Boolean running = true;
+        
+    }
+    
+    /** OLD INTRO
+     * Boolean running = true;
         System.out.println("#========================================================================================#");
         System.out.println("|                  Welcome Admirals, to the Battleships Application!                     |");
         System.out.println("#========================================================================================#");
@@ -59,7 +63,7 @@ public class BattleshipsApplication {
                     break;
             }
         } while (running); 
-    }
+     */
     
     /**
      * This method collects the setup data for a new Game of Battleships, then creates and returns the Game object
