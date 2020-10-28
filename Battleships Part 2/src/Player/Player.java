@@ -25,7 +25,7 @@ public abstract class Player implements Turn {
         this.playerMap = new Map(mapHeight, mapSize, name);
     }
     
-    public abstract void placeShip(int shipToPlace);
+    public abstract int placeShip(Coordinate front, int Orientation, int shipSize);
     public abstract Coordinate enterCoordinate(Boolean firingShot);
     
     /**
@@ -35,22 +35,22 @@ public abstract class Player implements Turn {
      * @param length - the size of the potential Ship
      * @return newLocation - a HashSet representing a potential location for a ship
      */
-    public HashSet<Coordinate> constructLocation(Coordinate front, String orientation, int length) {
+    public HashSet<Coordinate> constructLocation(Coordinate front, int orientation, int length) {
         HashSet<Coordinate> newLocation = new HashSet<>();
         newLocation.add(front);
         for (int i = 1; i < length; i++) {
-            switch (orientation.toLowerCase()) {
-                case "up":
+            switch (orientation) {
+                case 0:
                     newLocation.add(new Coordinate(front.getxCoord(), front.getyCoord() - i));
                     break;
-                case "down":
+                case 1:
                     newLocation.add(new Coordinate(front.getxCoord(), front.getyCoord() + i));
                     break;
-                case "left":
+                case 2:
                     char[] shiftedxLeft = Character.toChars(front.getxCoord() - i);
                     newLocation.add(new Coordinate(shiftedxLeft[0], front.getyCoord()));
                     break;
-                case "right":
+                case 3:
                     char[] shiftedxRight = Character.toChars(front.getxCoord() + i);
                     newLocation.add(new Coordinate(shiftedxRight[0], front.getyCoord()));
                     break;

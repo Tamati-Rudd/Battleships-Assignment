@@ -23,154 +23,24 @@ public class HumanPlayer extends Player {
 
     /**
      * This method gathers the needed user data for a ship placement, creates the Ship and assigns it to the Player's Fleet
+     * @param front
+     * @param Orientation
+     * @param shipSize
      * @param shipToPlace an integer representation of which ship needs to be placed
      */
     @Override
-    public void placeShip(int shipToPlace) {
-        Scanner in = new Scanner(System.in);
-        int shipSize = 0;
-        char shipLength = ' ';
-        HashSet<Coordinate> location = new HashSet<>();
+    public int placeShip(Coordinate front, int Orientation, int shipSize) {
+
+        HashSet<Coordinate> location = new HashSet<>();   
+        location = constructLocation(front, Orientation, shipSize);
+        Boolean spaceIsFree = checkBlocked(location);
         
-        switch(shipToPlace) {
-            case 0:
-                shipSize = 6;
-                shipLength = 6;
-                break;
-            case 1:
-                shipSize = 5;
-                shipLength = 5;
-                break;
-            case 2:
-                shipSize = 4;
-                shipLength = 4;
-                break;
-            case 3:
-                shipSize = 3;
-                shipLength = 3;
-                break;
-            case 4:
-                shipSize = 2;
-                shipLength = 2;
-                break;
+        if (spaceIsFree) {
+            
         }
         
-        Boolean gettingShipData = true;
-        do {
-            Coordinate front = null;
-            Boolean gettingFront = true;
-            do {
-                System.out.println(this.getPlayerName()+"'s Current Fleet Positioning");
-                this.getPlayerMap().displayFleetLocation();
-                switch (shipSize) {
-                    case 6:
-                        System.out.println();
-                        System.out.println("Placing "+this.getPlayerName()+"'s Carrier ("+shipSize+" coordinates long):");
-                        System.out.println();
-                        break;
-                    case 5:
-                        System.out.println();
-                        System.out.println("Placing "+this.getPlayerName()+"'s Battleship ("+shipSize+" coordinates long):");
-                        System.out.println();
-                        break;
-                    case 4:
-                        System.out.println();
-                        System.out.println("Placing "+this.getPlayerName()+"'s Destroyer ("+shipSize+" coordinates long):");
-                        System.out.println();
-                        break;
-                    case 3:
-                        System.out.println();
-                        System.out.println("Placing "+this.getPlayerName()+"'s Submarine ("+shipSize+" coordinates long)");
-                        System.out.println();
-                        break;
-                    case 2:
-                        System.out.println();
-                        System.out.println("Placing "+this.getPlayerName()+"'s Patrol Boat ("+shipSize+" coordinates long):");
-                        System.out.println();
-                        break;
-                }
-                System.out.println("Input the desired coordinate for the bow (front) of the ship: (e.g. \"D11\")");
-                System.out.println("Note: the letter MUST be typed before the number for the coordinate to be accepted");
-                front = this.enterCoordinate(false);
-                gettingFront = false;
-            } while(gettingFront);
-            
-            
-            Boolean gettingOrientation = true;
-            String orientation = "";
-            do {
-                System.out.println();
-                System.out.println("Enter desired orientation for the ship \"up\", \"down\", \"left\" or \"right\" or type \"change\" to choose a new front coordinate");
-                System.out.print("> ");
-                orientation = in.nextLine();
-                switch (orientation.toLowerCase()) {
-                    case "up": //User selects an orientation of up from the front Coordinate
-                        if (front.getyCoord()-shipSize+1 >= 1) {
-                            location = constructLocation(front, orientation, shipSize);
-                            Boolean spaceIsFree = checkBlocked(location);
-                            if (spaceIsFree) {
-                                gettingOrientation = false;
-                                gettingShipData = false;
-                            }
-                            else
-                                System.out.println("Invalid Orientation: This orientation is blocked by an existing ship. Please enter another orientation");
-                        }
-                        else
-                            System.out.println("Invalid Orientation: This orientation would cause an out of bounds ship placement. Please enter another orientation");
-                        break;
-                    case "down": //User selects an orientation of down from the front Coordinate
-                        if (front.getyCoord()+shipSize-1 <= this.getPlayerMap().getMapSize()) {
-                            location = constructLocation(front, orientation, shipSize);
-                            Boolean spaceIsFree = checkBlocked(location);
-                            if (spaceIsFree) {
-                                gettingOrientation = false;
-                                gettingShipData = false;
-                            }
-                            else
-                                System.out.println("Invalid Orientation: This orientation is blocked by an existing ship. Please enter another orientation");
-                        }
-                        else
-                            System.out.println("Invalid Orientation: This orientation would cause an out of bounds ship placement. Please enter another orientation");
-                        break;
-                    case "left": //User selects an orientation of left from the front Coordinate
-                        if (front.getxCoord()-shipLength+1 >= 'A') {
-                            location = constructLocation(front, orientation, shipSize);
-                            Boolean spaceIsFree = checkBlocked(location);
-                            if (spaceIsFree) {
-                                gettingOrientation = false;
-                                gettingShipData = false;
-                            }
-                            else
-                                System.out.println("Invalid Orientation: This orientation is blocked by an existing ship. Please enter another orientation");
-                        }
-                        else
-                            System.out.println("Invalid Orientation: This orientation would cause an out of bounds ship placement. Please enter another orientation");
-                        break;
-                    case "right": //User selects an orientation of right from the front Coordinate
-                        if (front.getxCoord()+shipLength <= this.getPlayerMap().getMapLength()) {
-                            location = constructLocation(front, orientation, shipSize);
-                            Boolean spaceIsFree = checkBlocked(location);
-                            if (spaceIsFree) {
-                                gettingOrientation = false;
-                                gettingShipData = false;
-                            }
-                            else
-                                System.out.println("Invalid Orientation: This orientation is blocked by an existing ship. Please enter another orientation");
-                        }
-                        else
-                            System.out.println("Invalid Orientation: This orientation would cause an out of bounds ship placement. Please enter another orientation");
-                        break;
-                    case "change":
-                        gettingOrientation = false;
-                        break;
-                    default:
-                        System.out.println("Invalid Orientation: Unrecognized direction, please try again, or type change to re-enter the bow (front) coordinate");
-                        break;
-                }
-            } while (gettingOrientation);
-        } while(gettingShipData);
-        
-        switch (shipToPlace) { //Perform the Ship placement, and assign it to the Fleet
+        /**
+         switch (shipSize) { //Perform the Ship placement, and assign it to the Fleet
             case 0:
                 Ship carrier = new Carrier(location);
                 this.getPlayerFleet().assignShip(carrier);
@@ -193,9 +63,11 @@ public class HumanPlayer extends Player {
                 break;
         }
         this.getPlayerMap().updateFleetLocation(this.getPlayerFleet()); //Update the Fleets location in the Player's Map
+         */
+        return 0;
     }
    
-    /**
+    /** TO BE DELETED
      * This method collects a single coordinate input from the user (e.g. D11)
      * @param firingShot whether the method is being used to target a shot
      * @return a Coordinate object representing the x and y values entered

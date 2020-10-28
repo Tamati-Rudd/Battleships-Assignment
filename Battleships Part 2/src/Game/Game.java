@@ -12,6 +12,8 @@ import java.util.Scanner;
 public class Game {
     private Player playerOne;
     private Player playerTwo;
+    private int p1ShipsToPlace;
+    private int p2ShipsToPlace;
     private Boolean gameStarted;
     private String winnerName;
     static Scanner in = new Scanner(System.in);
@@ -30,7 +32,7 @@ public class Game {
     
     
     
-    public void placeShips() {
+    public void placeShips() { //RE USE THIS METHOD BUT REMOVE ALL THE PRINTS
         //Player 1 places their ships
         System.out.println();
         System.out.println("#========================================================================================#");
@@ -48,10 +50,7 @@ public class Game {
         System.out.println("|                            Ship Placements: Player One                                 |");
         System.out.println("#========================================================================================#");
         
-        for (int i = 0; i < this.getPlayerOne().getPlayerFleet().getMaxFleetSize(); i++) { 
-            this.getPlayerOne().placeShip(i);  
-            System.out.println("====================================================================================================================================");
-        }
+       
         
         System.out.println();
         System.out.println("#========================================================================================#");
@@ -82,10 +81,6 @@ public class Game {
         System.out.println("|                            Ship Placements: Player Two                                 |");
         System.out.println("#========================================================================================#");
         
-        for (int i = 0; i < this.getPlayerTwo().getPlayerFleet().getMaxFleetSize(); i++) { 
-            this.getPlayerTwo().placeShip(i); 
-            System.out.println("====================================================================================================================================");
-        }
         
         System.out.println();
         System.out.println("#========================================================================================#");

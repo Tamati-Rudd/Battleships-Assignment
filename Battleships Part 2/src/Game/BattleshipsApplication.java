@@ -19,11 +19,9 @@ public class BattleshipsApplication {
      */
     public static void main(String[] args) {
         View view = new View();
-        //Model model = new Model();
-        //Controller controller = new Controller();
-        //model.addObserver(view);
-        
-        
+        Model model = new Model();
+        Controller controller = new Controller(view, model);
+        model.addObserver(view);
     }
     
     /** OLD INTRO
