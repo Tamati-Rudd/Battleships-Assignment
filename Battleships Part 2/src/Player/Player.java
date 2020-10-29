@@ -1,7 +1,7 @@
 package Player;
 
 import Map.Coordinate;
-import Map.Map;
+import Map.Database;
 import Ships.Fleet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,35 +10,33 @@ import java.util.Iterator;
  * This class contains attributes and methods that define a single Player in a game of Battleships
  * @author Tamati Rudd 18045626
  */
-public abstract class Player implements Turn {
+public abstract class Player {
     protected String playerName;
-    protected Map playerMap;
     protected Fleet playerFleet;
+    protected int playerNumber;
+    protected Database database;
 
-    public Player(String name, int mapSize) {
+    public Player(String name, int playerNumber, Database database) {
         this.playerName = name;
         this.playerFleet = new Fleet();
-        char mapHeight = 'A';
-        for (int i = 0; i < mapSize-1; i++) { //Calculate the final column of the map as a character (e.g. for map size 12, this will be 'L')
-            mapHeight++;
-        }
-        this.playerMap = new Map(mapHeight, mapSize, name);
+        this.playerNumber = playerNumber;
+        this.database = database;
     }
     
-    public abstract int placeShip(Coordinate front, int Orientation, int shipSize);
-    public abstract Coordinate enterCoordinate(Boolean firingShot);
+    public abstract boolean placeShip(HashSet<Coordinate> location, int ship);
     
     /**
-     * This method constructs a HashSet of Coordinates that represent a location of a potential ship
+     * This method constructs a HashSet of Coordinates that represent a location of a potential ship in a Fleet
      * @param front - the front Coordinate of the potential Ship
      * @param orientation - the user entered orientation of the potential Ship
-     * @param length - the size of the potential Ship
+     * @param ship - the potential Ship for which the constructed location is for
      * @return newLocation - a HashSet representing a potential location for a ship
      */
-    public HashSet<Coordinate> constructLocation(Coordinate front, int orientation, int length) {
+    public HashSet<Coordinate> constructLocation(Coordinate front, int orientation, int ship) {
         HashSet<Coordinate> newLocation = new HashSet<>();
+        int size = this.getPlayerFleet().getShips().get(ship).getShipSize(); //get the size of the ship to construct
         newLocation.add(front);
-        for (int i = 1; i < length; i++) {
+        for (int i = 1; i < size; i++) {
             switch (orientation) {
                 case 0:
                     newLocation.add(new Coordinate(front.getxCoord(), front.getyCoord() - i));
@@ -58,35 +56,24 @@ public abstract class Player implements Turn {
         }
         return newLocation;
     }
-    
+
     /**
-     * This method checks if the Coordinates between a start and end point are blocked - as in whether a Ship is already present on them
+     * This method checks if the Coordinates between a start and end point are inside the map or blocked (whether a Ship is already present on them)
      * @param locationToCheck - The HashSet of Coordinates to check for blockages
      * @return blocked - Whether the Coordinates the ship would be placed on are blocked by another ship or not
      */
-    public Boolean checkBlocked(HashSet<Coordinate> locationToCheck) {
-        Boolean unblocked = true;
+    public Boolean checkLegalPlacement(HashSet<Coordinate> locationToCheck, int orientation) {
+        Boolean placementLegal = true;
         Iterator<Coordinate> it = locationToCheck.iterator();
         while (it.hasNext()) {
-            Boolean blocked = this.getPlayerMap().checkCoordinateForShip(it.next(), false, null);
-            if (blocked) {
-                unblocked = false;
-            }
+            Coordinate checking = it.next();
+            if (!(checking.getxCoord() >= 'A' && checking.getxCoord() <= 'L' && checking.getyCoord() >= 1 && checking.getyCoord() <= 12)) 
+                return false;
+            Boolean blocked = database.getShipPresent(this.getPlayerNumber(), checking);
+            if (blocked)
+                return false;    
         }
-        return unblocked;
-    }
-    
-    @Override
-    public void shotFeedback(Boolean shotHit, Coordinate target, Map enemyMap) {
-        System.out.println();
-        System.out.println(this.getPlayerName()+"'s Shots Fired");
-        enemyMap.writeShotsFiredMap(); 
-        enemyMap.readShotsFiredMap();
-        System.out.println();
-        if (shotHit) 
-            System.out.println("Your shot hit an enemy ship!");
-        else
-            System.out.println("Your shot missed!");  
+        return placementLegal;
     }
     
     public String getPlayerName() {
@@ -97,12 +84,12 @@ public abstract class Player implements Turn {
         this.playerName = playerName;
     }
 
-    public Map getPlayerMap() {
-        return playerMap;
+    public int getPlayerNumber() {
+        return playerNumber;
     }
 
-    public void setPlayerMap(Map playerMap) {
-        this.playerMap = playerMap;
+    public void setPlayerNumber(int playerNumber) {
+        this.playerNumber = playerNumber;
     }
 
     public Fleet getPlayerFleet() {

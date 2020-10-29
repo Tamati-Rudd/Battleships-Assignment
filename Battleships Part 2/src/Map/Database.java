@@ -11,13 +11,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * This class manages the connection between the program and the database and contains methods to query and update the database
  * @author Tamati Rudd
  */
 public class Database {
     
     Connection connection = null;
-    String url = "jdbc:derby://localhost:1527/BattleshipsDB";
+    String url = "jdbc:derby:BattleshipsDB; create=true";
     String username = "battleships";
     String password = "battleships";
       
@@ -31,6 +31,7 @@ public class Database {
     
     /**
      * This method sets up the tables in the database and populates them to their initial state
+     * Note: shipPresent column values 0 = carrier, 1 = battleship, 2 = destroyer, 3 = submarine, 4 = patrol boat, null if none present
      */
     public void setupTables() {
         try {
@@ -49,8 +50,8 @@ public class Database {
             }
             
             Statement create = connection.createStatement();
-            create.executeUpdate("CREATE TABLE PlayerOneMap (location INT, state VARCHAR(7), hasShip INT, shipPresent VARCHAR(12))");
-            create.executeUpdate("CREATE TABLE PlayerTwoMap (location INT, state VARCHAR(7), hasShip INT, shipPresent VARCHAR(12))");
+            create.executeUpdate("CREATE TABLE PlayerOneMap (location INT, state VARCHAR(7), hasShip INT, shipPresent INT)");
+            create.executeUpdate("CREATE TABLE PlayerTwoMap (location INT, state VARCHAR(7), hasShip INT, shipPresent INT)");
             create.close();
             
             Statement populate = connection.createStatement();
@@ -71,15 +72,15 @@ public class Database {
      * @param location the location on the map to be updated
      * @param ship what Ship is being placed
      */
-    public void updateShipPresent(int player, Coordinate location, String ship) {
+    public void updateShipPresent(int player, Coordinate location, int ship) {
         try {
             Statement updatePlacement = connection.createStatement();
-            int locationNumber = 12*(location.getxCoord()-65) + location.getxCoord();
+            int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
             
             if (player == 1) 
-                updatePlacement.executeUpdate("UPDATE Table PlayerOneMap SET hasShip=1, shipPresent="+ship+" WHERE location="+locationNumber);
+                updatePlacement.executeUpdate("UPDATE PlayerOneMap SET hasShip=1, shipPresent="+ship+" WHERE location="+locationNumber);
             else if (player == 2)
-                updatePlacement.executeUpdate("UPDATE Table PlayerTwoMap SET hasShip=1, shipPresent="+ship+" WHERE location="+locationNumber);
+                updatePlacement.executeUpdate("UPDATE PlayerTwoMap SET hasShip=1, shipPresent="+ship+" WHERE location="+locationNumber);
             updatePlacement.close();
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
@@ -95,19 +96,19 @@ public class Database {
         Boolean shipPresent = false;
         try {
             Statement checkPresent = connection.createStatement();
-            int locationNumber = 12*(location.getxCoord()-65) + location.getxCoord();
+            int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
             ResultSet rs = null;
             if (player == 1) 
                 rs = checkPresent.executeQuery("SELECT hasShip FROM PlayerOneMap WHERE location = "+locationNumber);
             else
                 rs = checkPresent.executeQuery("SELECT hasShip FROM PlayerTwoMap WHERE location = "+locationNumber);
-            checkPresent.close();
             if (rs.next()) {
                 int shipFound = rs.getInt("hasShip");
                 if (shipFound == 1)
                     shipPresent = true;
             }
             rs.close();
+            checkPresent.close();
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -122,19 +123,43 @@ public class Database {
     public void updateShipStatus(int player, Coordinate location) {
         try {
             Statement updateStatus = connection.createStatement();
-            int locationNumber = 12*(location.getxCoord()-65) + location.getxCoord();
+            int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
             String status = "";
             if (location.getCoordState() == Status.HIT)
                 status = "HIT";
             else if (location.getCoordState() == Status.MISS)
                 status = "MISS";
             if (player == 1) 
-                updateStatus.executeUpdate("UPDATE Table PlayerOneMap SET State="+status+" WHERE location="+locationNumber);
+                updateStatus.executeUpdate("UPDATE PlayerOneMap SET state='"+status+"' WHERE location="+locationNumber);
             if (player == 2)
-                updateStatus.executeUpdate("UPDATE Table PlayerOneMap SET State="+status+" WHERE location="+locationNumber);
+                updateStatus.executeUpdate("UPDATE PlayerOneMap SET state='"+status+"' WHERE location="+locationNumber);
             updateStatus.close();
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public boolean getShipStatus(int player, Coordinate location) {
+        boolean hit = false;
+        try {
+            Statement checkStatus = connection.createStatement();
+            int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
+            ResultSet rs = null;
+            if (player == 1)
+                rs = checkStatus.executeQuery("SELECT State from PlayerOneMap WHERE location="+locationNumber);
+            else
+                rs = checkStatus.executeQuery("SELECT State from PlayerTwoMap WHERE location="+locationNumber);
+            
+            if(rs.next()) {
+                String coordinateHit = rs.getString("State");
+                if (coordinateHit.equals("HIT"))
+                    hit = true;
+            }
+            rs.close();
+            checkStatus.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return hit;
     }
 }

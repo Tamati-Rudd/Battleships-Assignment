@@ -18,6 +18,16 @@ public class Fleet {
         this.ships = new LinkedList<>();
         this.currentFleetSize = 0;
         this.shipsSunk = 0;
+        setupFleet();
+    }
+    
+    private void setupFleet() {
+        ships.add(new Carrier());
+        ships.add(new Battleship());
+        ships.add(new Destroyer());
+        ships.add(new Submarine());
+        ships.add(new PatrolBoat());
+        currentFleetSize = 5;
     }
     
     /**
@@ -28,27 +38,18 @@ public class Fleet {
      */
     public Ship getShipAtCoord(Coordinate coord) {
         Ship identifiedShip = null;
+        System.out.println("Checking"+coord.getxCoord()+""+coord.getyCoord());
         for (Ship s : this.getShips()) {
             Iterator<Coordinate> it = s.getLocation().iterator();
             while (it.hasNext()) {
                 Coordinate c = it.next();
+                System.out.println("Against"+c.getxCoord()+""+c.getyCoord());
                 if (c.equals(coord)) {
                     identifiedShip = s;
                 }
             }
         }
         return identifiedShip;
-    }
-
-    /** 
-     * This method adds a single ship to the fleet. This cannot be done if this would cause the fleet size to go above the maximum allowed
-     * @param shipToAdd the Ship object to add to this fleet
-     */
-    public void assignShip(Ship shipToAdd) {
-        if (this.getCurrentFleetSize() < this.getMaxFleetSize()) {
-            this.getShips().add(shipToAdd);
-            this.setCurrentFleetSize(this.getCurrentFleetSize()+1);
-        }
     }
     
     /**

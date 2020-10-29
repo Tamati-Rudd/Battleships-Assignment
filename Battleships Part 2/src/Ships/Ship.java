@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * This abstract class defines common attributes and methods for all ship types that appear in battleships
+ * This abstract class defines common attributes and methods for all ship types that appear in Battleships
  * @author Tamati Rudd 18045626
  */
 public abstract class Ship {
@@ -42,8 +42,15 @@ public abstract class Ship {
         return location;
     }
 
+    /**
+     * Set the location of a ship and update its Coordinates to indicate the presence of a Ship
+     * @param location - the location of the Ship
+     */
     public void setLocation(HashSet<Coordinate> location) {
         this.location = location;
+        Iterator<Coordinate> it = this.location.iterator();
+        while (it.hasNext()) 
+            it.next().shipPlaced();
     }
 
     public int getShipSize() {
