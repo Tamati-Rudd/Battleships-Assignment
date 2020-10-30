@@ -55,9 +55,9 @@ public class Database {
             create.close();
             
             Statement populate = connection.createStatement();
-            for (int i = 1; i <= 144; i++) {
-                populate.executeUpdate("INSERT INTO PlayerOneMap VALUES ("+i+", 'HIDDEN', 0, null)");
-                populate.executeUpdate("INSERT INTO PlayerTwoMap VALUES ("+i+", 'HIDDEN', 0, null)");
+            for (int i = 0; i < 144; i++) {
+                populate.executeUpdate("INSERT INTO PlayerOneMap VALUES ("+i+", 'HIDDEN', -1, null)");
+                populate.executeUpdate("INSERT INTO PlayerTwoMap VALUES ("+i+", 'HIDDEN', -1, null)");
             }
             populate.close();
         } 
@@ -76,7 +76,6 @@ public class Database {
         try {
             Statement updatePlacement = connection.createStatement();
             int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
-            
             if (player == 1) 
                 updatePlacement.executeUpdate("UPDATE PlayerOneMap SET hasShip=1, shipPresent="+ship+" WHERE location="+locationNumber);
             else if (player == 2)
@@ -104,7 +103,7 @@ public class Database {
                 rs = checkPresent.executeQuery("SELECT hasShip FROM PlayerTwoMap WHERE location = "+locationNumber);
             if (rs.next()) {
                 int shipFound = rs.getInt("hasShip");
-                if (shipFound == 1)
+                if (shipFound != -1)
                     shipPresent = true;
             }
             rs.close();
@@ -120,7 +119,7 @@ public class Database {
      * @param player which Player's map is to be updated
      * @param location the location on the map to be updated
      */
-    public void updateShipStatus(int player, Coordinate location) {
+    public void updateShipStatus(int player, Coordinate location) { //BUGGED I THINK
         try {
             Statement updateStatus = connection.createStatement();
             int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
@@ -137,29 +136,5 @@ public class Database {
         } catch (SQLException ex) {
             Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
-    public boolean getShipStatus(int player, Coordinate location) {
-        boolean hit = false;
-        try {
-            Statement checkStatus = connection.createStatement();
-            int locationNumber = (location.getxCoord()-65) + ((location.getyCoord()-1)*12);
-            ResultSet rs = null;
-            if (player == 1)
-                rs = checkStatus.executeQuery("SELECT State from PlayerOneMap WHERE location="+locationNumber);
-            else
-                rs = checkStatus.executeQuery("SELECT State from PlayerTwoMap WHERE location="+locationNumber);
-            
-            if(rs.next()) {
-                String coordinateHit = rs.getString("State");
-                if (coordinateHit.equals("HIT"))
-                    hit = true;
-            }
-            rs.close();
-            checkStatus.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return hit;
     }
 }

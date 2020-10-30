@@ -9,6 +9,7 @@ public class Data {
     public String p2Name; //Player two name
     int gameState = 0; //The state of the game. 0 = pre-game, 1 = player one ship placements, 2 = player 2 ship placements, 3 = player 1 turn, 4 = player 2 turn, 5 = game over
     boolean newGameFlag = false; //Flag used to indicate the New Game button has been pressed (and that it is Player one's turn to place ships)
+    boolean orientationXedFlag = false; //Flag used to indicate if the user Xed the orientation window during ship placement
     boolean placementSuccessful = false; //Whether a ship placement succeeded or not
     int shipToPlace = 0; //The current ship that needs to be placed. 0 = carrier, 1 = battleship, 2 = destroyer, 3 = submarine, 4 = patrol boat
     int[] placement; //Ship placement data
@@ -20,7 +21,8 @@ public class Data {
     boolean shipSunkFlag = false; //Flag used to indicate a ship has been sunk (but the game isn't over)
     int winner = 0; //Winner of the game
     boolean victoryFlag = false; //Flag used to indicate if someone has won the game
-    boolean endGameFlag = false; //Flag used to indicate if the endGame button was pressed
+    boolean resignGameFlag = false; //Flag used to indicate if the endGame button was pressed
+    int playerWhoResigned; //Which player resigned from the game
     boolean rulesFlag = false; //Flag used to indicate if the rules button was pressed
     
     public Data(String p1Name, String p2Name) {

@@ -38,12 +38,10 @@ public class Fleet {
      */
     public Ship getShipAtCoord(Coordinate coord) {
         Ship identifiedShip = null;
-        System.out.println("Checking"+coord.getxCoord()+""+coord.getyCoord());
         for (Ship s : this.getShips()) {
             Iterator<Coordinate> it = s.getLocation().iterator();
             while (it.hasNext()) {
                 Coordinate c = it.next();
-                System.out.println("Against"+c.getxCoord()+""+c.getyCoord());
                 if (c.equals(coord)) {
                     identifiedShip = s;
                 }
@@ -127,11 +125,7 @@ public class Fleet {
         return ships;
     }
 
-    public void setShips(LinkedList<Ship> ships) {
-        this.ships = ships;
-    }
-
-     public int getCurrentFleetSize() {
+    public int getCurrentFleetSize() {
         return currentFleetSize;
     }
 

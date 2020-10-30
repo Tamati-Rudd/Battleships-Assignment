@@ -27,9 +27,4 @@ public interface State {
      * The implementation of this method will indicate that a Ship has been placed on a Coordinate object, and update the state accordingly
      */
     public void shipPlaced();
-    
-    /**
-     * The implementation of this method will be used to update the state of a Coordinate object when it is fired at during a turn
-     */
-    public Boolean registerShot();
 }

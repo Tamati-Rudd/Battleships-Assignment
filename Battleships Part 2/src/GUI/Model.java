@@ -24,6 +24,17 @@ public class Model extends Observable {
         database = new Database();
         database.setupTables();
         game = new Game("One", "Two", database);
+        data = new Data("One", "Two");
+    }
+    
+    /**
+     * Sets the rules flag to true to display the game rules
+     */
+    public void showRules() {
+        data.rulesFlag = true;
+        setChanged();
+        notifyObservers(data);
+        data.rulesFlag = false;
     }
     
     /**
@@ -40,7 +51,8 @@ public class Model extends Observable {
             p2Name = "Two";
         game.getPlayerOne().setPlayerName(p1Name);
         game.getPlayerTwo().setPlayerName(p2Name);
-        data = new Data(p1Name, p2Name);
+        data.p1Name = p1Name;
+        data.p2Name = p2Name;
         data.gameState = 1;
         data.newGameFlag = true;
         setChanged();
@@ -55,11 +67,11 @@ public class Model extends Observable {
      */
     public void placeShip(Coordinate selected, int orientation) {
         HashSet<Coordinate> location = new HashSet<>();
-        if (orientation == -1) { //User Xed the option window
-            data.placementSuccessful = false;
+        if (orientation == -1) { //user Xed the orientation window
             location.add(selected);
-        }   
-        else {
+            data.orientationXedFlag = true;
+        } 
+        else { //user didnt X the orientation window
             Boolean spaceIsFree = false;
             if (data.gameState == 1) {
                 location = game.getPlayerOne().constructLocation(selected, orientation, data.shipToPlace);
@@ -82,13 +94,13 @@ public class Model extends Observable {
                 data.placementSuccessful = false; 
                 location.clear();
                 location.add(selected);
-            }      
-        } 
-        
+            } 
+        }
         data.placement = convertPlacementData(location);
         setChanged();
         notifyObservers(data);
-        data.placementSuccessful = false; //reset placementSuccessful to false to avoid errornous updates 
+        data.orientationXedFlag = false;
+        data.placementSuccessful = false; //reset flags to false to avoid errornous updates 
     }
     
     /**
@@ -139,11 +151,11 @@ public class Model extends Observable {
         boolean hit = false;
         boolean shipSunk = false;
         boolean fleetSunk = false;
-        if (data.gameState == 3) { //Player One fired at Player Two's Map
-            database.updateShipStatus(2, target);
-            hit = database.getShipStatus(2, target);
-            System.out.println(hit);
+        if (data.gameState == 3) { //Player One fired 
+            hit = database.getShipPresent(2, target);
             if (hit) { //if hit, check to see if the Ship is sunk
+                target.setCoordState(State.Status.HIT);
+                database.updateShipStatus(1, target);
                 game.getPlayerTwo().getPlayerFleet().updateFleetCoordStatus(target);
                 data.hit = (target.getxCoord()-65) + ((target.getyCoord()-1)*12);
                 data.hitFlag = true;
@@ -154,14 +166,18 @@ public class Model extends Observable {
                     Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            else { //Missed
+                target.setCoordState(State.Status.MISS);
+                database.updateShipStatus(1, target);
+            }
             if (shipSunk)
                fleetSunk = game.getPlayerTwo().getPlayerFleet().checkFleetSunk();
         }  
-        else if (data.gameState == 4) { //Player Two fired at Player One's Map
-            database.updateShipStatus(1, target); 
-            hit = database.getShipStatus(1, target);
-            System.out.println(hit);
+        else if (data.gameState == 4) { //Player Two fired 
+            hit = database.getShipPresent(1, target);
             if (hit) {
+                target.setCoordState(State.Status.HIT);
+                database.updateShipStatus(1, target);
                 game.getPlayerOne().getPlayerFleet().updateFleetCoordStatus(target);
                 data.hit = (target.getxCoord()-65) + ((target.getyCoord()-1)*12);
                 data.hitFlag = true;
@@ -172,14 +188,18 @@ public class Model extends Observable {
                     Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            else { //Missed
+                target.setCoordState(State.Status.MISS);
+                database.updateShipStatus(1, target);
+            }
             if (shipSunk)
-               fleetSunk = game.getPlayerTwo().getPlayerFleet().checkFleetSunk();
+               fleetSunk = game.getPlayerOne().getPlayerFleet().checkFleetSunk();
         }
         
+        if (shipSunk) //A Ship has been sunk
+            data.shipSunkFlag = true;
         if (fleetSunk) //A Fleet has been sunk, so the game is over
            winGame();
-        else if (shipSunk && !fleetSunk)
-            data.shipSunkFlag = true;
         
         setChanged();
         notifyObservers(data);
@@ -196,25 +216,28 @@ public class Model extends Observable {
      * Sets the data values to those relating to the Player who won the game
      */
     public void winGame() {
-        if (data.gameState == 3) {
-            game.setWinnerName(game.getPlayerOne().getPlayerName());
+        if (data.gameState == 3) 
             data.winner = 1;
-        }
-        else if (data.gameState == 4) {
-            game.setWinnerName(game.getPlayerTwo().getPlayerName());
+        else if (data.gameState == 4) 
             data.winner = 2;
-        }
         data.victoryFlag = true;
         data.gameState = 5;
     }
     
     /**
      * Sets the data values to those needed to end the game manually
+     * @param confirmEnd whether the confirmation button was clicked or not
      */
-    public void endGame() {
-        data.gameState = 5;
-        data.endGameFlag = true;
-        setChanged();
-        notifyObservers(data);
+    public void resignGame(int confirmEnd) {
+        if (confirmEnd == 0) {
+            if (data.gameState == 3)
+                data.playerWhoResigned = 1;
+            else if (data.gameState == 4)
+                data.playerWhoResigned = 2;
+            data.gameState = 5;
+            data.resignGameFlag = true;
+            setChanged();
+            notifyObservers(data);
+        }
     }
 }

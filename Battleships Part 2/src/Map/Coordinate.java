@@ -23,16 +23,8 @@ public class Coordinate implements State {
         return xCoord;
     }
 
-    public void setxCoord(char xCoord) {
-        this.xCoord = xCoord;
-    }
-
     public int getyCoord() {
         return yCoord;
-    }
-
-    public void setyCoord(int yCoord) {
-        this.yCoord = yCoord;
     }
 
     public Status getCoordState() {
@@ -53,16 +45,6 @@ public class Coordinate implements State {
         this.hasShip = true;
     }
     
-    @Override
-    public Boolean registerShot() {
-        Boolean hit = checkForShip();
-        if (hit) 
-            setCoordState(Status.HIT);
-        else 
-            setCoordState(Status.MISS);
-        return hit;
-    }
-
     @Override
     public int hashCode() {
         int hash = 7;

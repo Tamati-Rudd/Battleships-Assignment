@@ -9,6 +9,7 @@ import javax.swing.JTextField;
 import javax.swing.JRadioButton;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 /**
@@ -29,16 +30,20 @@ public class View extends javax.swing.JFrame implements Observer {
     private JLabel yLabels1[] = new JLabel[12]; 
     public JRadioButton[][] gameMap1 = new JRadioButton[12][12];
     private JLabel map1Label = new JLabel("Placing Ships", JLabel.CENTER);
+    private JTextField shotFeedback1 = new JTextField("Shot Not Fired");
+    private ArrayList<Integer> map1RedButtons = new ArrayList<>(); //For tracking which RadioButtons should be red in gameMap1
     private JLabel xLabels2[] = new JLabel[12]; 
     private JLabel yLabels2[] = new JLabel[12]; 
     public JRadioButton[][] gameMap2 = new JRadioButton[12][12];
     private JLabel map2Label = new JLabel("Placing Ships", JLabel.CENTER);
+    private JTextField shotFeedback2 = new JTextField("Shot Not Fired");
+    private ArrayList<Integer> map2RedButtons = new ArrayList<>(); //For tracking which RadioButtons should be red in gameMap2
     
     public JButton newGame = new JButton("New Game");
-    public JButton endGame = new JButton ("End Game");
+    public JButton resignGame = new JButton ("Resign Game");
     public JButton confirmPlacements1 = new JButton("Confirm Placements");
     public JButton confirmPlacements2 = new JButton("Confirm Placements");
-    public JButton rules = new JButton("Rules");
+    public JButton rules = new JButton("How to Play");
     
     public View() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -104,22 +109,30 @@ public class View extends javax.swing.JFrame implements Observer {
         map1Label.setBounds(51,365,252,20);
         map1Label.setVisible(false);
         battleshipsPanel.add(map1Label);
+        shotFeedback1.setBounds(117, 390, 120, 20);
+        shotFeedback1.setEditable(false);
+        shotFeedback1.setVisible(false);
+        battleshipsPanel.add(shotFeedback1);
         map2Label.setBounds(403,365,252,20);
         map2Label.setVisible(false);
         battleshipsPanel.add(map2Label);
+        shotFeedback2.setBounds(470, 390, 120, 20);
+        shotFeedback2.setEditable(false);
+        shotFeedback2.setVisible(false);
+        battleshipsPanel.add(shotFeedback2);
         
         newGame.setBounds(303, 45, 100, 35);
         battleshipsPanel.add(newGame);
-        endGame.setBounds(303, 45, 100, 35);
-        endGame.setVisible(false);
-        battleshipsPanel.add(endGame);
+        resignGame.setBounds(298, 45, 110, 35);
+        resignGame.setVisible(false);
+        battleshipsPanel.add(resignGame);
         confirmPlacements1.setBounds(100,390,160,35);
         confirmPlacements1.setVisible(false);
         battleshipsPanel.add(confirmPlacements1);
         confirmPlacements2.setBounds(453,390,160,35);
         confirmPlacements2.setVisible(false);
         battleshipsPanel.add(confirmPlacements2);
-        rules.setBounds(303, 390, 100, 35);
+        rules.setBounds(298, 390, 110, 35);
         battleshipsPanel.add(rules);
 
         this.setTitle("Battleships");
@@ -140,7 +153,7 @@ public class View extends javax.swing.JFrame implements Observer {
             }
         }
         newGame.addActionListener(listener);
-        endGame.addActionListener(listener);
+        resignGame.addActionListener(listener);
         confirmPlacements1.addActionListener(listener);
         confirmPlacements2.addActionListener(listener);
         rules.addActionListener(listener);
@@ -189,6 +202,69 @@ public class View extends javax.swing.JFrame implements Observer {
         
         map2Label.setVisible(true);
     }
+     
+    /**
+     * This method updates the RadioButtons to show a ship placement
+     * @param data the program data passed to update
+     */
+    public void showPlacement(Data data) {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 12; j++) {
+                for (int k : data.placement) {
+                    if (i == k/12 && j == k%12) {
+                        if (data.gameState == 1) {
+                            gameMap1[i][j].setSelected(true);
+                            gameMap1[i][j].setEnabled(false);
+                        }
+                        else if (data.gameState == 2) {
+                            gameMap2[i][j].setSelected(true);
+                            gameMap2[i][j].setEnabled(false);
+                        }      
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method prevents the clicking of more RadioButtons, thus preventing more ship placement inputs
+     * @param data the program data passed to update
+     */
+    public void disablePlacement(Data data) {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 12; j++) {
+                if (data.gameState == 1) {
+                    gameMap1[i][j].setEnabled(false);
+                    confirmPlacements1.setVisible(true);
+                } 
+                else if (data.gameState == 2) {
+                    gameMap2[i][j].setEnabled(false);
+                    confirmPlacements2.setVisible(true);
+                }  
+            }
+        }
+    }
+    
+    /**
+     * This method deselects the selected RadioButton when the ship placement is invalid or cancelled
+     * @param data 
+     */
+    public void invalidPlacement(Data data) {
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 12; j++) {
+                for (int k : data.placement) {
+                    if (i == k/12 && j == k%12) {
+                        if (data.gameState == 1) 
+                            gameMap1[i][j].setSelected(false);
+                        else if (data.gameState == 2) 
+                            gameMap2[i][j].setSelected(false);
+                        if (!data.orientationXedFlag)
+                            JOptionPane.showMessageDialog(this, "Error: this ship placement is invalid. Possible reasons:"+System.lineSeparator()+"- Part of the ship would be out of bounds"+System.lineSeparator()+"- Part of the ship would overlap with an existing ship"+System.lineSeparator()+"- No orientation option was chosen"+System.lineSeparator()+"Please choose another ship placement", "Ship Placement Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        }
+    }
     
     /**
      * This method resets Player 1's map following ship placement confirmation to prepare it for game play
@@ -200,6 +276,7 @@ public class View extends javax.swing.JFrame implements Observer {
             yLabels1[i].setVisible(false);
             for (int j = 0; j < 12; j++) {
                 gameMap1[i][j].setVisible(false);
+                gameMap1[i][j].setEnabled(true);
                 gameMap1[i][j].setSelected(false);
             }       
         }
@@ -214,18 +291,25 @@ public class View extends javax.swing.JFrame implements Observer {
         for (int i = 0; i < 12; i++) {          
             for (int j = 0; j < 12; j++) {
                 gameMap2[i][j].setSelected(false);
-                gameMap2[i][j].setEnabled(true);
+                gameMap2[i][j].setEnabled(false);
             }       
         }
         confirmPlacements2.setVisible(false);
     }
     
+    /**
+     * This method sets up the UI for the start of the game
+     */
     public void startGame() {
         heading.setText("In Game: Player 1's Turn");
-        map1Label.setText("Player 2's Shots Hit");
-        map2Label.setText("Player 1's Shots Hit");
+        map1Label.setText("Player 1's Shots Fired");
+        map2Label.setText("Player 2's Shots Fired");
+        shotFeedback1.setVisible(true);
+        shotFeedback2.setVisible(true);
+        resignGame.setVisible(true);
         showMap1();
-        JOptionPane.showMessageDialog(this, "The Game has Begun! May the best admiral win!"+System.lineSeparator()+"Game Instructions (press rules to see these again): "+System.lineSeparator()+"- Player 1 will select a target to fire at from the green map during turns"+System.lineSeparator()+"- Player 2 will select a target to fire at from the blue map during turns"+System.lineSeparator()+"- Player 1 always takes the first turn"+System.lineSeparator()+"- The first player to sink all 5 enemy ships wins!", "Game Started!", JOptionPane.INFORMATION_MESSAGE);
+        disableMap2();
+        JOptionPane.showMessageDialog(this, "The Game has Begun! May the best admiral win!"+System.lineSeparator()+System.lineSeparator()+"- Player 1 will select a target to fire at from the blue map during turns"+System.lineSeparator()+"- Player 2 will select a target to fire at from the green map during turns"+System.lineSeparator()+"- Your map will be coloured as above during your turn"+System.lineSeparator()+"- Player 1 always takes the first turn"+System.lineSeparator()+"- The first player to sink all 5 enemy ships wins!"+System.lineSeparator()+System.lineSeparator()+"Note: Once a target coordinate is selected, the target is final!", "Game Started!", JOptionPane.INFORMATION_MESSAGE);
     }
     
     /**
@@ -235,10 +319,15 @@ public class View extends javax.swing.JFrame implements Observer {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 12; j++) {
                 gameMap1[i][j].setEnabled(false);
+                if (!(map1RedButtons.contains(i*12+j)))
+                    gameMap1[i][j].setBackground(new java.awt.Color(240, 240, 240));
                 if (!gameMap2[i][j].isSelected())
                     gameMap2[i][j].setEnabled(true);
+                if (!(map2RedButtons.contains(i*12+j)))
+                    gameMap2[i][j].setBackground(new java.awt.Color(66, 161, 54)); 
             }
-        }  
+        }
+        shotFeedback2.setText("Shot Not Fired");
     }
     
     /**
@@ -248,10 +337,15 @@ public class View extends javax.swing.JFrame implements Observer {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 12; j++) {
                 gameMap2[i][j].setEnabled(false);
+                if (!(map2RedButtons.contains(i*12+j)))
+                    gameMap2[i][j].setBackground(new java.awt.Color(240, 240, 240));
                 if (!gameMap1[i][j].isSelected())
                     gameMap1[i][j].setEnabled(true);
+                if (!(map1RedButtons.contains(i*12+j)))
+                    gameMap1[i][j].setBackground(new java.awt.Color(49, 116, 216)); 
             }
         }
+        shotFeedback1.setText("Shot Not Fired");
     }
     
     /**
@@ -276,17 +370,21 @@ public class View extends javax.swing.JFrame implements Observer {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 12; j++) {
                 if (i == data.hit/12 && j == data.hit%12) {
-                    if (data.gameState == 3) {
-                        gameMap2[i][j].setBackground(new java.awt.Color(220,79,79));
-                        gameMap2[i][j].setEnabled(false);
-                        disableMap2();
+                    if (data.gameState == 3 || data.winner == 1) {
+                        gameMap1[i][j].setBackground(new java.awt.Color(220,79,79));
+                        gameMap1[i][j].setEnabled(false);
+                        map1RedButtons.add(i*12+j);
+                        shotFeedback1.setText("Shot Hit");
+                        disableMap1();
                         heading.setText("In Game: Player 2's Turn");
                     }
                             
-                    else if (data.gameState == 4) {
-                        gameMap1[i][j].setBackground(new java.awt.Color(220,79,79));
-                        gameMap1[i][j].setEnabled(false);
-                        disableMap1();
+                    else if (data.gameState == 4 || data.winner == 2) {
+                        gameMap2[i][j].setBackground(new java.awt.Color(220,79,79));
+                        gameMap2[i][j].setEnabled(false);
+                        map2RedButtons.add(i*12+j);
+                        shotFeedback2.setText("Shot Hit");
+                        disableMap2();
                         heading.setText("In Game: Player 1's Turn");
                     }    
                 }
@@ -298,70 +396,34 @@ public class View extends javax.swing.JFrame implements Observer {
     public void update(Observable o, Object arg) {
         Data data = (Data) arg;
 
-        if (data.newGameFlag) { //A new game was started in the Model
+        if (data.rulesFlag)
+            JOptionPane.showMessageDialog(this, "In Battleships, each of the two players have 5 ships, placed on a 12x12 map"+System.lineSeparator()+"The ships are placed in the following order:"+System.lineSeparator()+"- Carrier (length = 6 coordinates long)"+System.lineSeparator()+"- Battleship (length = 5 coordinates long)"+System.lineSeparator()+"- Destroyer (length = 4 coordinates)"+System.lineSeparator()+"- Submarine (length = 3 coordinates long)"+System.lineSeparator()+"- Patrol Boat (length = 2 coordinates long)"+System.lineSeparator()+"Ships can only be placed horizontally or vertically on your map, and must be within the map bounds"+System.lineSeparator()+"During placements and the players turn, player one's map is blue, while player two's map is green"+System.lineSeparator()+System.lineSeparator()+"During a game, players will fire shots at the opponent's ships in alternation by firing at the blue map for player one, or the green map for player two"+System.lineSeparator()+"Coordinates that have been fired at are marked with a dot, and cannot be selected again"+System.lineSeparator()+"If the shot hits an enemy ship, the coordinate will also be coloured red for the rest of the game"+System.lineSeparator()+"A ship is sunk when all of its coordintes have been hit by a shot"+System.lineSeparator()+"Sink all 5 of your opponents ships to win!", "How to Play", JOptionPane.INFORMATION_MESSAGE);
+        else {
+            if (data.newGameFlag) { //A new game was started in the Model
             heading.setText("Ship Placements: Player 1");
             showMap1();
-            newGame.setVisible(false);
-            endGame.setVisible(true);
+            newGame.setVisible(false);      
             p1Name.setText(data.p1Name);
             p1Name.setEditable(false);
             p2Name.setText(data.p2Name);
             p2Name.setEditable(false);
+            JOptionPane.showMessageDialog(this, data.p1Name+" (player 1) will now place their ships"+System.lineSeparator()+"To place a ship, select a desired end coordinate, then choose an orientation from the popup window (or close the window to cancel)"+System.lineSeparator()+"Placements that go out of bounds or overlap with an existing ship are not allowed"+System.lineSeparator()+"Ships are placed in order of Carrier (length = 6), Battleship (length = 5), Destroyer (length = 4), Submarine (length = 3), Patrol Boat (length = 2)"+System.lineSeparator()+System.lineSeparator()+data.p2Name+" (player 2) should be looking away from the screen!", "Player 1 Ship Placements", JOptionPane.INFORMATION_MESSAGE);
         }
         
         if (data.placementSuccessful) { //A ship was successfully placed in the Model
-            for (int i = 0; i < 12; i++) {
-                for (int j = 0; j < 12; j++) {
-                    for (int k : data.placement) {
-                        if (i == k/12 && j == k%12) {
-                            if (data.gameState == 1) {
-                                gameMap1[i][j].setSelected(true);
-                                gameMap1[i][j].setEnabled(false);
-                            }
-                            else if (data.gameState == 2) {
-                                gameMap2[i][j].setSelected(true);
-                                gameMap2[i][j].setEnabled(false);
-                            }        
-                        }
-                    }
-                }
-            }
-            if (data.shipToPlace == 5) { //Disable further Ship placement and show confirmation button
-                
-                for (int i = 0; i < 12; i++) {
-                    for (int j = 0; j < 12; j++) {
-                        if (data.gameState == 1) {
-                            gameMap1[i][j].setEnabled(false);
-                            confirmPlacements1.setVisible(true);
-                        } 
-                        else if (data.gameState == 2) {
-                            gameMap2[i][j].setEnabled(false);
-                            confirmPlacements2.setVisible(true);
-                        }  
-                    }
-                }
+            showPlacement(data);
+            if (data.shipToPlace == 5) { 
+                disablePlacement(data);
             }
         }
-        else if (!data.placementSuccessful && (data.gameState == 1 || data.gameState == 2) && !data.newGameFlag && !data.p2PlacingFlag) { //A ship was not successfully placed in the Model, but no flags are true
-            for (int i = 0; i < 12; i++) {
-                for (int j = 0; j < 12; j++) {
-                    for (int k : data.placement) {
-                        if (i == k/12 && j == k%12) {
-                            if (data.gameState == 1) 
-                                gameMap1[i][j].setSelected(false);
-                            else if (data.gameState == 2) 
-                                gameMap2[i][j].setSelected(false);
-                            JOptionPane.showMessageDialog(this, "Error: this ship placement is invalid. Possible reasons:"+System.lineSeparator()+"- Part of the ship would be out of bounds"+System.lineSeparator()+"- Part of the ship would overlap with an existing ship"+System.lineSeparator()+"- No orientation option was chosen"+System.lineSeparator()+"Please choose another ship placement", "Ship Placement Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                }
-            }
-        }
+        else if (!data.placementSuccessful && (data.gameState == 1 || data.gameState == 2) && !data.newGameFlag && !data.p2PlacingFlag) //A ship was not successfully placed in the Model, but no flags are true
+           invalidPlacement(data);
         
         if (data.p2PlacingFlag) { //Player 1's ship placements have been confirmed
             heading.setText("Ship Placements: Player 2");
             resetMap1();
             showMap2();
+            JOptionPane.showMessageDialog(this, data.p2Name+" (player 2) will now place their ships"+System.lineSeparator()+"To place a ship, select a desired end coordinate, then choose an orientation from the popup window (or close the window to cancel)"+System.lineSeparator()+"Placements that go out of bounds or overlap with an existing ship are not allowed"+System.lineSeparator()+"Ships are placed in order of Carrier (length = 6), Battleship (length = 5), Destroyer (length = 4), Submarine (length = 3), Patrol Boat (length = 2)"+System.lineSeparator()+System.lineSeparator()+data.p1Name+" (player 1) should be looking away from the screen!", "Player 2 Ship Placements", JOptionPane.INFORMATION_MESSAGE);
         }
         
         if (data.gameStartFlag) { //All ship placements are complete and the game is to begin
@@ -372,37 +434,38 @@ public class View extends javax.swing.JFrame implements Observer {
         if (data.hitFlag) { //A shot was fired and hit
             updateHit(data);
             if (data.shipSunkFlag)
-                JOptionPane.showMessageDialog(this, "You sunk an enemy ship"+System.lineSeparator()+"There are "+data.shipsRemaining+" enemy ships left", "Ship Sunk", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "You sunk an enemy ship!"+System.lineSeparator()+"There are "+data.shipsRemaining+" enemy ship(s) left", "Ship Sunk", JOptionPane.INFORMATION_MESSAGE);
         }
         else {
             if (data.gameState == 3 && !data.gameStartFlag) {
-                disableMap2();
+                shotFeedback1.setText("Shot Missed");
+                disableMap1();
                 heading.setText("In Game: Player 2's Turn");
             }    
             else if (data.gameState == 4 && !data.gameStartFlag) {
-                disableMap1();
+                shotFeedback2.setText("Shot Missed");
+                disableMap2();
                 heading.setText("In Game: Player 1's Turn");
             }     
         }
         
         if (data.gameState == 5) { //Game has ended
-            endGame.setEnabled(false);
+            resignGame.setEnabled(false);
             rules.setEnabled(false);
             confirmPlacements1.setEnabled(false);
             confirmPlacements2.setEnabled(false);
-            if (data.victoryFlag) { //A player won
+            if (data.victoryFlag || data.resignGameFlag) { //A player won
                 disableBothMaps();
-                if (data.winner == 1) {
+                if (data.winner == 1 || data.playerWhoResigned == 2) {
                     heading.setText("Game Over: Player 1 Wins");
+                    JOptionPane.showMessageDialog(this, data.p1Name+" (player 1) has won the game!", "Player 1 Victory", JOptionPane.INFORMATION_MESSAGE);
                 }
-                else if (data.winner == 2) {
+                else if (data.winner == 2 || data.playerWhoResigned == 1) {
                     heading.setText("Game Over: Player 2 Wins");
+                    JOptionPane.showMessageDialog(this, data.p2Name+" (player 2) has won the game!", "Player 2 Victory", JOptionPane.INFORMATION_MESSAGE);
                 }
-            }
-            else if (data.endGameFlag) { //End game button was pressed
-                disableBothMaps();
-                heading.setText("Game Over: Game Manually Ended");
-            }
+            }     
         } 
+    }      
     }
 }

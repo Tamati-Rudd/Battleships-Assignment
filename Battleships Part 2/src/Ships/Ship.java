@@ -20,22 +20,21 @@ public abstract class Ship {
      * @return whether the ship is sunk or not
      */
     public Boolean damageReport() {
-        
-         Iterator<Coordinate> it = location.iterator();
-         int coordsHit = 0;
+        Iterator<Coordinate> it = location.iterator();
+        int coordsHit = 0;
          
-         while (it.hasNext()) { //Iterate over the location HashSet and record how many Coordinates have been hit
-             Coordinate c = it.next();
-             if (c.getCoordState() == Status.HIT)
+        while (it.hasNext()) { //Iterate over the location HashSet and record how many Coordinates have been hit
+            Coordinate c = it.next();
+            if (c.getCoordState() == Status.HIT)
                 coordsHit++;    
-         }
+        }
          
-         if (coordsHit == this.getShipSize()) { //if all Coordinates have been hit, the ship is sunk
-             setSunk(true);
-             return true;
-         }
-         
-         return false;
+        if (coordsHit == this.getShipSize()) { //if all Coordinates have been hit, the ship is sunk
+            setSunk(true);
+            return true;
+        }
+        
+        return false;
     } 
     
     public HashSet<Coordinate> getLocation() {
@@ -55,14 +54,6 @@ public abstract class Ship {
 
     public int getShipSize() {
         return shipSize;
-    }
-
-    public void setShipSize(int shipSize) {
-        this.shipSize = shipSize;
-    }
-
-    public Boolean getSunk() {
-        return sunk;
     }
 
     public void setSunk(Boolean sunk) {

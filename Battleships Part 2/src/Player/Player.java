@@ -76,9 +76,6 @@ public abstract class Player {
         return placementLegal;
     }
     
-    public String getPlayerName() {
-        return playerName;
-    }
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
@@ -88,15 +85,7 @@ public abstract class Player {
         return playerNumber;
     }
 
-    public void setPlayerNumber(int playerNumber) {
-        this.playerNumber = playerNumber;
-    }
-
     public Fleet getPlayerFleet() {
         return playerFleet;
-    }
-
-    public void setPlayerFleet(Fleet playerFleet) {
-        this.playerFleet = playerFleet;
     }
 }

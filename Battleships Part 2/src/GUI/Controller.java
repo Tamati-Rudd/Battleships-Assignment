@@ -10,7 +10,6 @@ import javax.swing.JOptionPane;
  * @author Tamati Rudd
  */
 public class Controller implements ActionListener {
-
     public View view;
     public Model model;
     
@@ -27,9 +26,12 @@ public class Controller implements ActionListener {
         if (source.equals(view.newGame)) //New Game Button pressed
             model.newGameStarted(view.p1Name.getText(), view.p2Name.getText()); 
         
-        else if (source.equals(view.endGame))  //End Game Button pressed
-            model.endGame(); 
-        
+        else if (source.equals(view.resignGame))  {//End Game Button pressed
+            String[] endOptions = {"Yes, End Game", "No, Keep Playing"};
+            int confirmEnd = JOptionPane.showOptionDialog(null, "Are you sure you want to end the game?", "End Game Check", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, endOptions, endOptions[1]);
+            model.resignGame(confirmEnd);
+        }
+             
         else if (source.equals(view.confirmPlacements1)) //Confirm Ship Placements for Player 1 Button pressed
             model.beginP2Placements();
         
@@ -37,7 +39,7 @@ public class Controller implements ActionListener {
             model.beginGame();
         
         else if (source.equals(view.rules)) //Rules Button pressed
-            System.out.println("Gimme the rules!");
+            model.showRules();
         
         else { //A map Coordinate (RadioButton) was pressed
             Coordinate selected = null;
